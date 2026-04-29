@@ -1,0 +1,79 @@
+{% extends 'hod_template/base_template.html' %}
+
+{% block page_title %}
+Add Syllabus
+{% endblock %}
+
+{% block main_content %}
+
+<section class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+
+        <div class="card card-primary shadow-sm">
+          <div class="card-header">
+            <h3 class="card-title">Add New Syllabus</h3>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="card-body">
+
+              {% for field in form %}
+              <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+              </div>
+              {% endfor %}
+
+              <div id="dynamic-section"></div>
+
+            </div>
+
+            <div class="card-footer text-center">
+              <button type="submit" class="btn btn-primary">
+                Save Syllabus
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const subjectType = document.getElementById("id_subject_type");
+    const dynamicSection = document.getElementById("dynamic-section");
+
+    if (subjectType) {
+        subjectType.addEventListener("change", function () {
+            let value = this.value;
+
+            if (value === "theory") {
+                dynamicSection.innerHTML = `
+                    <h5>Modules</h5>
+                    <input type="text" class="form-control mb-2" name="module1" placeholder="Module 1">
+                    <input type="text" class="form-control mb-2" name="module2" placeholder="Module 2">
+                `;
+            } else if (value === "practical") {
+                dynamicSection.innerHTML = `
+                    <h5>Experiments</h5>
+                    <input type="text" class="form-control mb-2" name="exp1" placeholder="Experiment 1">
+                    <input type="text" class="form-control mb-2" name="exp2" placeholder="Experiment 2">
+                `;
+            } else {
+                dynamicSection.innerHTML = "";
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

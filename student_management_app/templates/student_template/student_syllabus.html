@@ -1,0 +1,42 @@
+{% extends 'student_template/base_template.html' %}
+
+{% block page_title %}
+View Syllabus
+{% endblock %}
+
+{% block main_content %}
+
+<div class="container mt-4">
+    <h3>📘 Available Syllabus</h3>
+
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th>Subject</th>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for s in syllabus %}
+        <tr>
+            <td>{{ s.subject.subject_name }}</td>
+            <td>{{ s.subject_code }}</td>
+            <td>{{ s.get_subject_type_display }}</td>
+            <td><span class="badge badge-success">HOD Approved</span></td>
+            <td>
+                <a href="{% url 'student_generate_pdf' s.id %}" class="btn btn-info btn-sm">
+                    View
+                </a>
+                
+                <a href="{% url 'student_generate_pdf' s.id %}?download=1" class="btn btn-success btn-sm">
+                    Download
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+{% endblock %}

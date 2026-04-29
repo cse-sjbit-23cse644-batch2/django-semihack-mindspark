@@ -1,0 +1,837 @@
+{% extends 'staff_template/base_template.html' %}
+
+{% block page_title %}
+Create Syllabus
+{% endblock %}
+
+{% block main_content %}
+<style>
+  .syllabus-form .section-title {
+    font-weight: 700;
+    text-align: center;
+    margin: 16px 0 8px;
+  }
+
+  .syllabus-form .syllabus-table th {
+    background: #f4f4f4;
+    font-weight: 600;
+  }
+
+  .syllabus-form .syllabus-table th,
+  .syllabus-form .syllabus-table td {
+    vertical-align: top;
+  }
+
+  .syllabus-form .co-row {
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .syllabus-form .co-code {
+    border: 1px solid #ced4da;
+    background: #f4f4f4;
+    text-align: center;
+    padding: 6px 8px;
+    font-weight: 600;
+  }
+
+  .syllabus-form .ltp-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .syllabus-form input[name='l_hours'],
+  .syllabus-form input[name='t_hours'],
+  .syllabus-form input[name='p_hours'] {
+    width: 70px;
+    display: inline-block;
+  }
+
+  .syllabus-form .module-table .module-header th {
+    background: #f9fafb;
+  }
+
+  .syllabus-form .module-name {
+    width: 100%;
+  }
+
+  .syllabus-form .hours-col {
+    width: 140px;
+  }
+
+  .syllabus-form .label-col {
+    width: 160px;
+  }
+
+  .syllabus-form .preview-muted {
+    color: #6c757d;
+  }
+
+  .syllabus-form .subsection-title {
+    font-weight: 600;
+    margin: 8px 0 6px;
+  }
+
+  .syllabus-form .resource-action-col {
+    width: 90px;
+  }
+
+  .syllabus-form .resource-table input {
+    min-width: 140px;
+  }
+</style>
+
+<section class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+
+        <div class="card card-primary shadow-sm">
+          <div class="card-header">
+            <h3 class="card-title">Syllabus Builder</h3>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="card-body syllabus-form">
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table">
+                  <tr>
+                    <th style="width: 18%;">Semester</th>
+                    <td style="width: 32%;">{{ form.semester }}</td>
+                    <th style="width: 18%;">Course Type</th>
+                    <td style="width: 32%;">{{ form.subject_type }}</td>
+                  </tr>
+                  <tr>
+                    <th>Course Title</th>
+                    <td colspan="3">{{ form.subject }}</td>
+                  </tr>
+                  <tr>
+                    <th>Course Code</th>
+                    <td>{{ form.subject_code }}</td>
+                    <th>Credits</th>
+                    <td>{{ form.credits }}</td>
+                  </tr>
+                  <tr>
+                    <th>Teaching Hours/Week (L:T:P)</th>
+                    <td>
+                      <div class="ltp-group">
+                        <span>L</span>{{ form.l_hours }}
+                        <span>:</span>
+                        <span>T</span>{{ form.t_hours }}
+                        <span>:</span>
+                        <span>P</span>{{ form.p_hours }}
+                      </div>
+                    </td>
+                    <th>Total Hours</th>
+                    <td class="preview-muted">Auto from modules</td>
+                  </tr>
+                  <tr>
+                    <th>CIE Marks</th>
+                    <td>{{ form.cie_marks }}</td>
+                    <th>SEE Marks</th>
+                    <td>{{ form.see_marks }}</td>
+                  </tr>
+                  <tr>
+                    <th>Total Marks</th>
+                    <td>{{ form.total_marks }}</td>
+                    <th>SEE Type</th>
+                    <td>{{ form.see_type }}</td>
+                  </tr>
+                  <tr>
+                    <th>Exam Hours</th>
+                    <td>{{ form.exam_hours }}</td>
+                    <th></th>
+                    <td></td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="section-title">I. COURSE OBJECTIVES</div>
+              <div id="co-list">
+                {% if course_objectives %}
+                  {% for co in course_objectives %}
+                    <div class="co-row">
+                      <div class="co-code">{{ co.co_code }}</div>
+                      <input type="text" name="co_description" class="form-control" value="{{ co.description }}" placeholder="Enter course objective">
+                      <button class="btn btn-outline-danger btn-sm remove-row" type="button">Remove</button>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="co-row">
+                    <div class="co-code">CO1</div>
+                    <input type="text" name="co_description" class="form-control" placeholder="Enter course objective">
+                    <button class="btn btn-outline-danger btn-sm remove-row" type="button">Remove</button>
+                  </div>
+                {% endif %}
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-co">Add Objective</button>
+
+              <div class="section-title">II. TEACHING-LEARNING PROCESS (GENERAL INSTRUCTIONS)</div>
+              <div class="form-group">
+                {{ form.description }}
+              </div>
+
+              <div class="section-title">III. COURSE CONTENT</div>
+              <div id="module-list">
+                {% if modules %}
+                  {% for m in modules %}
+                    <div class="border rounded p-2 mb-3 module-item">
+                      <table class="table table-bordered syllabus-table module-table">
+                        <tr class="module-header">
+                          <th colspan="3">
+                            Module-<span class="module-index">{{ forloop.counter }}</span>:
+                            <input type="text" name="module_name" class="form-control form-control-sm module-name" value="{{ m.module_name }}">
+                          </th>
+                          <th class="hours-col">
+                            Hours
+                            <input type="number" name="module_hours" class="form-control form-control-sm" value="{{ m.teaching_hours }}" min="0">
+                          </th>
+                        </tr>
+                        <tr>
+                          <th class="label-col">Content</th>
+                          <td colspan="3">
+                            <textarea name="module_content" class="form-control form-control-sm" rows="2">{{ m.content }}</textarea>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="label-col">Hands on</th>
+                          <td colspan="3">
+                            <input type="text" name="module_hands_on" class="form-control form-control-sm" value="{{ m.hands_on_exercises }}">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="label-col">Self-Learning</th>
+                          <td colspan="3">
+                            <input type="text" name="module_self_learning" class="form-control form-control-sm" value="{{ m.self_learning }}">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="label-col">RBT Levels</th>
+                          <td colspan="3">
+                            <input type="text" name="module_rbt" class="form-control form-control-sm" value="{{ m.rbt_level }}">
+                          </td>
+                        </tr>
+                        <tr>
+                          <th class="label-col">Books/References</th>
+                          <td colspan="3">
+                            <textarea name="module_refs" class="form-control form-control-sm" rows="2">{{ m.books_references }}</textarea>
+                          </td>
+                        </tr>
+                      </table>
+                      <button type="button" class="btn btn-outline-danger btn-sm remove-module">Remove Module</button>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="border rounded p-2 mb-3 module-item">
+                    <table class="table table-bordered syllabus-table module-table">
+                      <tr class="module-header">
+                        <th colspan="3">
+                          Module-<span class="module-index">1</span>:
+                          <input type="text" name="module_name" class="form-control form-control-sm module-name">
+                        </th>
+                        <th class="hours-col">
+                          Hours
+                          <input type="number" name="module_hours" class="form-control form-control-sm" value="0" min="0">
+                        </th>
+                      </tr>
+                      <tr>
+                        <th class="label-col">Content</th>
+                        <td colspan="3">
+                          <textarea name="module_content" class="form-control form-control-sm" rows="2"></textarea>
+                        </td>
+                      </tr>
+                      <tr>
+                        <th class="label-col">Hands on</th>
+                        <td colspan="3">
+                          <input type="text" name="module_hands_on" class="form-control form-control-sm">
+                        </td>
+                      </tr>
+                      <tr>
+                        <th class="label-col">Self-Learning</th>
+                        <td colspan="3">
+                          <input type="text" name="module_self_learning" class="form-control form-control-sm">
+                        </td>
+                      </tr>
+                      <tr>
+                        <th class="label-col">RBT Levels</th>
+                        <td colspan="3">
+                          <input type="text" name="module_rbt" class="form-control form-control-sm">
+                        </td>
+                      </tr>
+                      <tr>
+                        <th class="label-col">Books/References</th>
+                        <td colspan="3">
+                          <textarea name="module_refs" class="form-control form-control-sm" rows="2"></textarea>
+                        </td>
+                      </tr>
+                    </table>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-module">Remove Module</button>
+                  </div>
+                {% endif %}
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-module">Add Module</button>
+
+              <div class="section-title">IV. COURSE OUTCOMES</div>
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 15%;">CO</th>
+                      <th>Outcome</th>
+                    </tr>
+                  </thead>
+                  <tbody id="co-preview-body">
+                    {% if course_objectives %}
+                      {% for co in course_objectives %}
+                        <tr>
+                          <td>{{ co.co_code }}</td>
+                          <td>{{ co.description }}</td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="2" class="preview-muted">Add course objectives to preview outcomes.</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section-title">V. CO-PO-PSO MAPPING (mark H=3; M=2; L=1)</div>
+              <div class="form-row">
+                <div class="form-group col-md-3">
+                  <label for="id_po_count">PO Count</label>
+                  <input type="number" name="po_count" id="id_po_count" class="form-control" value="{{ form.po_count.value|default:12 }}" min="1">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="id_pso_count">PSO Count</label>
+                  <input type="number" name="pso_count" id="id_pso_count" class="form-control" value="{{ form.pso_count.value|default:3 }}" min="0">
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table" id="mapping-table">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <small class="text-muted">Mapping values: H = 3, M = 2, L = 1</small>
+
+              <div class="section-title">VI. ASSESSMENT DETAILS (CIE and SEE)</div>
+              <div class="row">
+                <div class="col-md-6">
+                  <label>Continuous Internal Evaluation (CIE)</label>
+                  {{ form.cie }}
+                </div>
+                <div class="col-md-6">
+                  <label>Semester End Examination (SEE)</label>
+                  {{ form.see }}
+                </div>
+              </div>
+
+              <div class="section-title">VII. LEARNING RESOURCES</div>
+              <div class="subsection-title">VII(a): Textbooks</div>
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table resource-table" id="textbook-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 6%;">Sl. No.</th>
+                      <th>Title of the Book</th>
+                      <th style="width: 22%;">Name of the author</th>
+                      <th style="width: 18%;">Edition and Year</th>
+                      <th style="width: 20%;">Name of the publisher</th>
+                      <th class="resource-action-col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if textbook_rows %}
+                      {% for row in textbook_rows %}
+                        <tr class="textbook-row">
+                          <td class="text-center">{{ forloop.counter }}</td>
+                          <td><input type="text" name="textbook_title" class="form-control form-control-sm" value="{{ row.title }}"></td>
+                          <td><input type="text" name="textbook_author" class="form-control form-control-sm" value="{{ row.author }}"></td>
+                          <td><input type="text" name="textbook_edition" class="form-control form-control-sm" value="{{ row.edition }}"></td>
+                          <td><input type="text" name="textbook_publisher" class="form-control form-control-sm" value="{{ row.publisher }}"></td>
+                          <td class="resource-action-col text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-textbook">Remove</button>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr class="textbook-row">
+                        <td class="text-center">1</td>
+                        <td><input type="text" name="textbook_title" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="textbook_author" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="textbook_edition" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="textbook_publisher" class="form-control form-control-sm"></td>
+                        <td class="resource-action-col text-center">
+                          <button type="button" class="btn btn-outline-danger btn-sm remove-textbook">Remove</button>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-textbook">Add Textbook</button>
+
+              <div class="subsection-title">VII(b): Reference Books</div>
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table resource-table" id="reference-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 6%;">Sl. No.</th>
+                      <th>Title of the Book</th>
+                      <th style="width: 22%;">Name of the author</th>
+                      <th style="width: 18%;">Edition and Year</th>
+                      <th style="width: 20%;">Name of the publisher</th>
+                      <th class="resource-action-col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if reference_rows %}
+                      {% for row in reference_rows %}
+                        <tr class="reference-row">
+                          <td class="text-center">{{ forloop.counter }}</td>
+                          <td><input type="text" name="reference_title" class="form-control form-control-sm" value="{{ row.title }}"></td>
+                          <td><input type="text" name="reference_author" class="form-control form-control-sm" value="{{ row.author }}"></td>
+                          <td><input type="text" name="reference_edition" class="form-control form-control-sm" value="{{ row.edition }}"></td>
+                          <td><input type="text" name="reference_publisher" class="form-control form-control-sm" value="{{ row.publisher }}"></td>
+                          <td class="resource-action-col text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-reference">Remove</button>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr class="reference-row">
+                        <td class="text-center">1</td>
+                        <td><input type="text" name="reference_title" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="reference_author" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="reference_edition" class="form-control form-control-sm"></td>
+                        <td><input type="text" name="reference_publisher" class="form-control form-control-sm"></td>
+                        <td class="resource-action-col text-center">
+                          <button type="button" class="btn btn-outline-danger btn-sm remove-reference">Remove</button>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-reference">Add Reference</button>
+
+              <div class="section-title">VII(c). WEB LINKS AND VIDEO LECTURES (E-RESOURCES)</div>
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table resource-table" id="web-links-table">
+                  <thead>
+                    <tr>
+                      <th>Web Link / Video Lecture</th>
+                      <th class="resource-action-col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if web_links %}
+                      {% for link in web_links %}
+                        <tr class="web-link-row">
+                          <td><input type="text" name="web_link" class="form-control form-control-sm" value="{{ link }}"></td>
+                          <td class="resource-action-col text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-web-link">Remove</button>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr class="web-link-row">
+                        <td><input type="text" name="web_link" class="form-control form-control-sm"></td>
+                        <td class="resource-action-col text-center">
+                          <button type="button" class="btn btn-outline-danger btn-sm remove-web-link">Remove</button>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-web-link">Add Link</button>
+
+              <div class="section-title">VIII. ACTIVITY BASED LEARNING / PRACTICAL BASED LEARNING / EXPERIENTIAL LEARNING</div>
+              <div class="table-responsive">
+                <table class="table table-bordered syllabus-table resource-table" id="activity-table">
+                  <thead>
+                    <tr>
+                      <th>Activity</th>
+                      <th class="resource-action-col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if activity_items %}
+                      {% for activity in activity_items %}
+                        <tr class="activity-row">
+                          <td><input type="text" name="activity_item" class="form-control form-control-sm" value="{{ activity }}"></td>
+                          <td class="resource-action-col text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-activity">Remove</button>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr class="activity-row">
+                        <td><input type="text" name="activity_item" class="form-control form-control-sm"></td>
+                        <td class="resource-action-col text-center">
+                          <button type="button" class="btn btn-outline-danger btn-sm remove-activity">Remove</button>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" type="button" id="add-activity">Add Activity</button>
+            </div>
+
+            <div class="card-footer text-center">
+              <button type="submit" name="action" value="draft" class="btn btn-secondary">Save Draft</button>
+              <button type="submit" name="action" value="submit" class="btn btn-primary">Submit for Approval</button>
+            </div>
+
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const mappingData = {% if mapping_data %}{{ mapping_data|safe }}{% else %}{}{% endif %};
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+  }
+
+  function formatText(value) {
+    if (!value) {
+      return "-";
+    }
+    return escapeHtml(value).replace(/\n/g, "<br>");
+  }
+
+  function updateCoLabels() {
+    const rows = document.querySelectorAll("#co-list .co-row");
+    rows.forEach((row, index) => {
+      const codeCell = row.querySelector(".co-code");
+      if (codeCell) {
+        codeCell.textContent = `CO${index + 1}`;
+      }
+    });
+  }
+
+  function updateCoPreview() {
+    const body = document.getElementById("co-preview-body");
+    if (!body) {
+      return;
+    }
+
+    const inputs = document.querySelectorAll("#co-list input[name='co_description']");
+    body.innerHTML = "";
+
+    if (!inputs.length) {
+      body.innerHTML = '<tr><td colspan="2" class="preview-muted">Add course objectives to preview outcomes.</td></tr>';
+      return;
+    }
+
+    inputs.forEach((input, index) => {
+      const text = formatText(input.value.trim());
+      body.insertAdjacentHTML(
+        "beforeend",
+        `<tr><td>CO${index + 1}</td><td>${text}</td></tr>`
+      );
+    });
+  }
+
+  function updateModuleLabels() {
+    const modules = document.querySelectorAll("#module-list .module-item");
+    modules.forEach((item, index) => {
+      const label = item.querySelector(".module-index");
+      if (label) {
+        label.textContent = index + 1;
+      }
+    });
+  }
+
+  function renumberRows(tableSelector, rowSelector) {
+    const rows = document.querySelectorAll(`${tableSelector} ${rowSelector}`);
+    rows.forEach((row, index) => {
+      const indexCell = row.querySelector("td");
+      if (indexCell) {
+        indexCell.textContent = index + 1;
+      }
+    });
+  }
+
+  function addTextbookRow() {
+    const tbody = document.querySelector("#textbook-table tbody");
+    if (!tbody) {
+      return;
+    }
+    const row = document.createElement("tr");
+    row.className = "textbook-row";
+    row.innerHTML = `
+      <td class="text-center"></td>
+      <td><input type="text" name="textbook_title" class="form-control form-control-sm"></td>
+      <td><input type="text" name="textbook_author" class="form-control form-control-sm"></td>
+      <td><input type="text" name="textbook_edition" class="form-control form-control-sm"></td>
+      <td><input type="text" name="textbook_publisher" class="form-control form-control-sm"></td>
+      <td class="resource-action-col text-center">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-textbook">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    renumberRows("#textbook-table", ".textbook-row");
+  }
+
+  function addReferenceRow() {
+    const tbody = document.querySelector("#reference-table tbody");
+    if (!tbody) {
+      return;
+    }
+    const row = document.createElement("tr");
+    row.className = "reference-row";
+    row.innerHTML = `
+      <td class="text-center"></td>
+      <td><input type="text" name="reference_title" class="form-control form-control-sm"></td>
+      <td><input type="text" name="reference_author" class="form-control form-control-sm"></td>
+      <td><input type="text" name="reference_edition" class="form-control form-control-sm"></td>
+      <td><input type="text" name="reference_publisher" class="form-control form-control-sm"></td>
+      <td class="resource-action-col text-center">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-reference">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    renumberRows("#reference-table", ".reference-row");
+  }
+
+  function addWebLinkRow() {
+    const tbody = document.querySelector("#web-links-table tbody");
+    if (!tbody) {
+      return;
+    }
+    const row = document.createElement("tr");
+    row.className = "web-link-row";
+    row.innerHTML = `
+      <td><input type="text" name="web_link" class="form-control form-control-sm"></td>
+      <td class="resource-action-col text-center">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-web-link">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  function addActivityRow() {
+    const tbody = document.querySelector("#activity-table tbody");
+    if (!tbody) {
+      return;
+    }
+    const row = document.createElement("tr");
+    row.className = "activity-row";
+    row.innerHTML = `
+      <td><input type="text" name="activity_item" class="form-control form-control-sm"></td>
+      <td class="resource-action-col text-center">
+        <button type="button" class="btn btn-outline-danger btn-sm remove-activity">Remove</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  function addCoRow() {
+    const list = document.getElementById("co-list");
+    const wrapper = document.createElement("div");
+    wrapper.className = "co-row";
+    wrapper.innerHTML = `
+      <div class="co-code">CO</div>
+      <input type="text" name="co_description" class="form-control" placeholder="Enter course objective">
+      <button class="btn btn-outline-danger btn-sm remove-row" type="button">Remove</button>
+    `;
+    list.appendChild(wrapper);
+  }
+
+  function addModuleRow() {
+    const list = document.getElementById("module-list");
+    const wrapper = document.createElement("div");
+    wrapper.className = "border rounded p-2 mb-3 module-item";
+    wrapper.innerHTML = `
+      <table class="table table-bordered syllabus-table module-table">
+        <tr class="module-header">
+          <th colspan="3">
+            Module-<span class="module-index"></span>:
+            <input type="text" name="module_name" class="form-control form-control-sm module-name">
+          </th>
+          <th class="hours-col">
+            Hours
+            <input type="number" name="module_hours" class="form-control form-control-sm" value="0" min="0">
+          </th>
+        </tr>
+        <tr>
+          <th class="label-col">Content</th>
+          <td colspan="3">
+            <textarea name="module_content" class="form-control form-control-sm" rows="2"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <th class="label-col">Hands on</th>
+          <td colspan="3">
+            <input type="text" name="module_hands_on" class="form-control form-control-sm">
+          </td>
+        </tr>
+        <tr>
+          <th class="label-col">Self-Learning</th>
+          <td colspan="3">
+            <input type="text" name="module_self_learning" class="form-control form-control-sm">
+          </td>
+        </tr>
+        <tr>
+          <th class="label-col">RBT Levels</th>
+          <td colspan="3">
+            <input type="text" name="module_rbt" class="form-control form-control-sm">
+          </td>
+        </tr>
+        <tr>
+          <th class="label-col">Books/References</th>
+          <td colspan="3">
+            <textarea name="module_refs" class="form-control form-control-sm" rows="2"></textarea>
+          </td>
+        </tr>
+      </table>
+      <button type="button" class="btn btn-outline-danger btn-sm remove-module">Remove Module</button>
+    `;
+    list.appendChild(wrapper);
+  }
+
+  function getCoCount() {
+    return document.querySelectorAll("#co-list input[name='co_description']").length;
+  }
+
+  function buildMappingTable() {
+    const poCount = parseInt(document.getElementById("id_po_count").value || "12", 10);
+    const psoCount = parseInt(document.getElementById("id_pso_count").value || "3", 10);
+    const table = document.getElementById("mapping-table");
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    let headerRow = "<tr><th>CO</th>";
+    for (let i = 1; i <= poCount; i += 1) {
+      headerRow += `<th>PO${i}</th>`;
+    }
+    for (let i = 1; i <= psoCount; i += 1) {
+      headerRow += `<th>PSO${i}</th>`;
+    }
+    headerRow += "</tr>";
+    thead.innerHTML = headerRow;
+
+    const coCount = getCoCount();
+    for (let coIndex = 1; coIndex <= coCount; coIndex += 1) {
+      let row = `<tr><td>CO${coIndex}</td>`;
+      for (let i = 1; i <= poCount; i += 1) {
+        const key = `PO${i}`;
+        const preset = mappingData[`co${coIndex}`] ? mappingData[`co${coIndex}`][key] : "";
+        row += `<td>${mappingSelect(`map_co${coIndex}_po${i}`, preset)}</td>`;
+      }
+      for (let i = 1; i <= psoCount; i += 1) {
+        const key = `PSO${i}`;
+        const preset = mappingData[`co${coIndex}`] ? mappingData[`co${coIndex}`][key] : "";
+        row += `<td>${mappingSelect(`map_co${coIndex}_pso${i}`, preset)}</td>`;
+      }
+      row += "</tr>";
+      tbody.insertAdjacentHTML("beforeend", row);
+    }
+  }
+
+  function mappingSelect(name, selectedValue) {
+    const value = selectedValue ? String(selectedValue) : "";
+    return `
+      <select name="${name}" class="form-control form-control-sm">
+        <option value="" ${value === "" ? "selected" : ""}></option>
+        <option value="1" ${value === "1" ? "selected" : ""}>L</option>
+        <option value="2" ${value === "2" ? "selected" : ""}>M</option>
+        <option value="3" ${value === "3" ? "selected" : ""}>H</option>
+      </select>
+    `;
+  }
+
+  document.addEventListener("click", function (event) {
+    if (event.target.id === "add-co") {
+      addCoRow();
+      updateCoLabels();
+      updateCoPreview();
+      buildMappingTable();
+    }
+    if (event.target.classList.contains("remove-row")) {
+      event.target.closest(".co-row").remove();
+      updateCoLabels();
+      updateCoPreview();
+      buildMappingTable();
+    }
+    if (event.target.id === "add-module") {
+      addModuleRow();
+      updateModuleLabels();
+    }
+    if (event.target.classList.contains("remove-module")) {
+      event.target.closest(".module-item").remove();
+      updateModuleLabels();
+    }
+    if (event.target.id === "add-textbook") {
+      addTextbookRow();
+    }
+    if (event.target.classList.contains("remove-textbook")) {
+      event.target.closest(".textbook-row").remove();
+      renumberRows("#textbook-table", ".textbook-row");
+    }
+    if (event.target.id === "add-reference") {
+      addReferenceRow();
+    }
+    if (event.target.classList.contains("remove-reference")) {
+      event.target.closest(".reference-row").remove();
+      renumberRows("#reference-table", ".reference-row");
+    }
+    if (event.target.id === "add-web-link") {
+      addWebLinkRow();
+    }
+    if (event.target.classList.contains("remove-web-link")) {
+      event.target.closest(".web-link-row").remove();
+    }
+    if (event.target.id === "add-activity") {
+      addActivityRow();
+    }
+    if (event.target.classList.contains("remove-activity")) {
+      event.target.closest(".activity-row").remove();
+    }
+  });
+
+  document.addEventListener("input", function (event) {
+    if (event.target.name === "co_description") {
+      updateCoLabels();
+      updateCoPreview();
+      buildMappingTable();
+    }
+  });
+
+  document.getElementById("id_po_count").addEventListener("input", buildMappingTable);
+  document.getElementById("id_pso_count").addEventListener("input", buildMappingTable);
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateCoLabels();
+    updateCoPreview();
+    updateModuleLabels();
+    renumberRows("#textbook-table", ".textbook-row");
+    renumberRows("#reference-table", ".reference-row");
+    buildMappingTable();
+  });
+</script>
+
+{% endblock %}

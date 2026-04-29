@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm 12mm 18mm 12mm;
+            @bottom-left {
+                content: "Dept. of CSE";
+                font-size: 10px;
+            }
+            @bottom-right {
+                content: "Page " counter(page);
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 11px;
+            color: #000;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .header-banner {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid #000;
+        }
+
+        .program-title {
+            text-align: center;
+            font-weight: bold;
+            margin: 6px 0 4px 0;
+        }
+
+        .section-table {
+            margin-top: 6px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .label-cell {
+            width: 22%;
+            font-weight: bold;
+        }
+
+        .hours-cell {
+            width: 14%;
+            text-align: center;
+        }
+
+        .subsection-title {
+            font-weight: bold;
+        }
+
+        .simple-list {
+            margin: 4px 0 0 18px;
+            padding: 0;
+        }
+
+        .small-text {
+            font-size: 10px;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <img class="header-banner" src="{{ logo_url }}" alt="Header">
+
+    <div class="program-title">{{ syllabus.subject.course_id.course_name|default:"BE in Computer Science and Engineering" }}</div>
+
+    <table class="table section-table">
+        <tr>
+            <th class="label-cell">Semester:</th>
+            <td>{{ syllabus.semester|default:"-" }}</td>
+            <th class="label-cell">Course Type:</th>
+            <td>{{ syllabus.get_subject_type_display }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">Course Title:</th>
+            <td colspan="3">{{ syllabus.subject.subject_name }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">Course Code:</th>
+            <td>{{ syllabus.subject_code }}</td>
+            <th class="label-cell">Credits:</th>
+            <td>{{ syllabus.credits|default_if_none:"-" }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">Teaching Hours/Week (L:T:P):</th>
+            <td>{{ syllabus.l_hours }}:{{ syllabus.t_hours }}:{{ syllabus.p_hours }}</td>
+            <th class="label-cell">Total Hours:</th>
+            <td>{{ total_hours }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">CIE Marks:</th>
+            <td>{{ syllabus.cie_marks|default_if_none:"-" }}</td>
+            <th class="label-cell">SEE Marks:</th>
+            <td>{{ syllabus.see_marks|default_if_none:"-" }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">Total Marks:</th>
+            <td>{{ syllabus.total_marks|default_if_none:"-" }}</td>
+            <th class="label-cell">SEE Type:</th>
+            <td>{{ syllabus.see_type|default:"-" }}</td>
+        </tr>
+        <tr>
+            <th class="label-cell">Exam Hours:</th>
+            <td>{{ syllabus.exam_hours|default_if_none:"-" }}</td>
+            <th class="label-cell">&nbsp;</th>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title">I. COURSE OBJECTIVES</th>
+        </tr>
+        <tr>
+            <td>This course will enable students to:</td>
+        </tr>
+        <tr>
+            <td>
+                <ol class="simple-list">
+                    {% for co in course_objectives %}
+                        <li>{{ co.description }}</li>
+                    {% empty %}
+                        <li>No course objectives provided.</li>
+                    {% endfor %}
+                </ol>
+            </td>
+        </tr>
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title">II. TEACHING-LEARNING PROCESS (GENERAL INSTRUCTIONS)</th>
+        </tr>
+        <tr>
+            <td>{{ syllabus.description|default:"-"|linebreaksbr }}</td>
+        </tr>
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title" colspan="3">III. COURSE CONTENT</th>
+        </tr>
+        {% for m in modules %}
+            <tr>
+                <td colspan="2"><strong>Module-{{ forloop.counter }}: {{ m.module_name }}</strong></td>
+                <td class="hours-cell">{{ m.teaching_hours }} Hrs</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Content</td>
+                <td colspan="2">{{ m.content|default:"-"|linebreaksbr }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Hands on</td>
+                <td colspan="2">{{ m.hands_on_exercises|default:"-"|linebreaksbr }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Textbook 1</td>
+                <td colspan="2">{{ m.books_references|default:"-"|linebreaksbr }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Self-Learning</td>
+                <td colspan="2">{{ m.self_learning|default:"-"|linebreaksbr }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">RBT Levels</td>
+                <td colspan="2">{{ m.rbt_level|default:"-" }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3">No modules added.</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title" colspan="2">IV. COURSE OUTCOMES</th>
+        </tr>
+        {% for co in course_objectives %}
+            <tr>
+                <td class="label-cell">{{ co.co_code }}</td>
+                <td>{{ co.description }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="2">No course outcomes provided.</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <table class="table section-table page-break">
+        <tr>
+            <th class="section-title" colspan="{{ po_count|add:pso_count|add:1 }}">V. CO-PO-PSO MAPPING (mark H=3; M=2; L=1)</th>
+        </tr>
+        <tr>
+            <th>CO</th>
+            {% for index in "x"|rjust:po_count %}
+                <th>PO{{ forloop.counter }}</th>
+            {% endfor %}
+            {% for index in "x"|rjust:pso_count %}
+                <th>PSO{{ forloop.counter }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in mapping_matrix %}
+            <tr>
+                <td>{{ row.co.co_code }}</td>
+                {% for value in row.po_values %}
+                    <td>{{ value }}</td>
+                {% endfor %}
+                {% for value in row.pso_values %}
+                    <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title" colspan="2">VI. ASSESSMENT DETAILS (CIE and SEE)</th>
+        </tr>
+        <tr>
+            <td class="label-cell">General Rules</td>
+            <td>Refer CIE and SEE guidelines based on course type for autonomous scheme.</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Continuous Internal Evaluation (CIE)</td>
+            <td>{{ syllabus.cie|default:"-"|linebreaksbr }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Semester End Examination (SEE)</td>
+            <td>{{ syllabus.see|default:"-"|linebreaksbr }}</td>
+        </tr>
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title">VII. LEARNING RESOURCES</th>
+        </tr>
+        <tr>
+            <td class="subsection-title">VII(a): Textbooks</td>
+        </tr>
+        <tr>
+            <td>
+                <table class="table">
+                    <tr>
+                        <th style="width: 6%;">Sl. No.</th>
+                        <th>Title of the Book</th>
+                        <th style="width: 22%;">Name of the author</th>
+                        <th style="width: 18%;">Edition and Year</th>
+                        <th style="width: 20%;">Name of the publisher</th>
+                    </tr>
+                    {% if textbook_rows %}
+                        {% for row in textbook_rows %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ row.title|default:"-" }}</td>
+                                <td>{{ row.author|default:"-" }}</td>
+                                <td>{{ row.edition|default:"-" }}</td>
+                                <td>{{ row.publisher|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5">No textbooks added.</td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="subsection-title">VII(b): Reference Books</td>
+        </tr>
+        <tr>
+            <td>
+                <table class="table">
+                    <tr>
+                        <th style="width: 6%;">Sl. No.</th>
+                        <th>Title of the Book</th>
+                        <th style="width: 22%;">Name of the author</th>
+                        <th style="width: 18%;">Edition and Year</th>
+                        <th style="width: 20%;">Name of the publisher</th>
+                    </tr>
+                    {% if reference_rows %}
+                        {% for row in reference_rows %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ row.title|default:"-" }}</td>
+                                <td>{{ row.author|default:"-" }}</td>
+                                <td>{{ row.edition|default:"-" }}</td>
+                                <td>{{ row.publisher|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5">No reference books added.</td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="subsection-title">VII(c): Web links and Video Lectures (e-Resources)</td>
+        </tr>
+        <tr>
+            <td>
+                <ol class="simple-list">
+                    {% if web_links %}
+                        {% for link in web_links %}
+                            <li>{{ link|linebreaksbr }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Not provided.</li>
+                    {% endif %}
+                </ol>
+            </td>
+        </tr>
+    </table>
+
+    <table class="table section-table">
+        <tr>
+            <th class="section-title">VIII. ACTIVITY BASED LEARNING / PRACTICAL BASED LEARNING / EXPERIENTIAL LEARNING</th>
+        </tr>
+        <tr>
+            <td>
+                <ol class="simple-list">
+                    {% if activity_items %}
+                        {% for item in activity_items %}
+                            <li>{{ item|linebreaksbr }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Not provided.</li>
+                    {% endif %}
+                </ol>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
