@@ -1,23 +1,7 @@
-<<<<<<< HEAD
-asgiref==3.2.10
-Django==3.0.7
-django-extensions==3.0.2
-graphviz==0.14
-mysql-connector-python==8.0.20
-protobuf==3.12.2
-pydot==1.4.1
-pyparsing==2.4.7
-pytz==2020.1
-six==1.15.0
-sqlparse==0.3.1
+Django==3.2.25
 weasyprint==60.2
-pydyf==0.8.0
 gunicorn==21.2.0
 whitenoise==6.6.0
-=======
-Django>=5.0,<5.1
-weasyprint>=60.0
-psycopg2-binary>=2.9
-gunicorn>=21.0
-python-decouple>=3.8
->>>>>>> 2a55c0b7423e0e5327e885164cfe16ed0f77dc77
+psycopg2-binary==2.9.9
+python-decouple==3.8
+dj-database-url==2.1.0

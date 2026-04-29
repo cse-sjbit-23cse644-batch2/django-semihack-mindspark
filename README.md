@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 Django-semihack-starter
 Starter template for semi-hackathon
 
@@ -80,7 +80,6 @@ DisallowedHost | Verify ALLOWED_HOSTS env var or settings.py matches your Render
 DB locked/migrations fail | Free tier uses SQLite by default. It's fine for hackathon demos. No extra config needed.
 
 💡 Note: After deployment, every git push to main auto-triggers a rebuild. No manual server restarts needed.
-=======
 # Django-semihack-starter
 Starter template for semi-hackathon
 # 🚀 Django Semi-Hackathon: [Team Name]
@@ -159,5 +158,5 @@ python manage.py runserver
 | `DisallowedHost` | Verify `ALLOWED_HOSTS` env var or `settings.py` matches your Render domain |
 | DB locked/migrations fail | Free tier uses SQLite by default. It's fine for hackathon demos. No extra config needed. |
 
-> 💡 **Note:** After deployment, every `git push` to `main` auto-triggers a rebuild. No manual server restarts needed.
->>>>>>> 2a55c0b7423e0e5327e885164cfe16ed0f77dc77
+💡 **Note:** After deployment, every `git push` to `main` auto-triggers a rebuild. No manual server restarts needed.
+
